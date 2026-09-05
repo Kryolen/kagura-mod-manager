@@ -1,0 +1,277 @@
+<Window x:Class="KaguraModManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:KaguraModManager.ViewModels"
+        xmlns:local="clr-namespace:KaguraModManager"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
+        Title="Kagura Mod Manager" Width="850" Height="620"
+        MinWidth="700" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        Closing="Window_Closing"
+        Background="{StaticResource BgMediumBrush}">
+
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <local:InverseBoolConverter x:Key="InverseBool"/>
+        <local:ModConverter x:Key="ModConv"/>
+        <local:FavConverter x:Key="FavConv"/>
+        <local:ModEnabledConverter x:Key="ModEnabledConv"/>
+        <local:TabVisibilityConverter x:Key="TabVis"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Tab Bar -->
+        <Border Grid.Row="0" Background="{StaticResource BgDarkBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                Padding="12,0">
+            <StackPanel Orientation="Horizontal" Height="42">
+                <RadioButton Style="{StaticResource TabButton}" IsChecked="True"
+                             Content="Mods" x:Name="ModsTab"
+                             Checked="ModsTab_Checked"/>
+                <RadioButton Style="{StaticResource TabButton}"
+                             Content="Settings" x:Name="SettingsTab"
+                             Checked="SettingsTab_Checked"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Mods Tab Content -->
+        <Grid Grid.Row="1" Margin="1"
+              Visibility="{Binding ActiveTab, Converter={StaticResource TabVis}, ConverterParameter=Mods}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Conflicts Banner -->
+            <Border Grid.Row="0" Background="#33eab308" BorderBrush="#55eab308"
+                    BorderThickness="0,0,0,1" Padding="12,8"
+                    Visibility="{Binding Conflicts.Count, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#x26A0;" FontSize="16" Foreground="{StaticResource WarningBrush}"
+                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Potential mod conflicts detected. Higher mods overwrite lower ones."
+                               Foreground="{StaticResource WarningBrush}" FontSize="12"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Mod Table -->
+            <DataGrid Grid.Row="1" ItemsSource="{Binding Mods}" SelectedItem="{Binding SelectedMod}"
+                      BorderThickness="0" x:Name="ModDataGrid"
+                      MouseDoubleClick="ModDataGrid_MouseDoubleClick"
+                      ContextMenuOpening="ModDataGrid_ContextMenuOpening">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="" Binding="{Binding Id}" Width="*" Visibility="Collapsed"/>
+                    <DataGridTemplateColumn Header="" Width="40">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsEnabled}" HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" Cursor="Hand"
+                                          Click="ModToggle_Click"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="" Width="40">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="&#x2605;" FontSize="14" HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" Cursor="Hand"
+                                           Foreground="{Binding IsFavorite, Converter={StaticResource FavConv}}"
+                                           MouseLeftButtonDown="FavStar_MouseLeftButtonDown"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Title}" Width="*"/>
+                    <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="80"/>
+                    <DataGridTextColumn Header="Author" Binding="{Binding Author}" Width="140"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <!-- Settings Tab Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding ActiveTab, Converter={StaticResource TabVis}, ConverterParameter=Settings}">
+            <StackPanel Margin="20" MaxWidth="600" HorizontalAlignment="Left">
+                <TextBlock Text="Settings" FontSize="20" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                <Border Background="{StaticResource BgLightBrush}" BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="6" Padding="16">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <TextBlock Text="Game Directories" FontSize="15" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center"/>
+                            <Button Content="Auto-Scan Steam" Margin="12,0,0,0" Padding="12,5"
+                                    Style="{StaticResource AccentButton}" FontSize="12"
+                                    Command="{Binding ScanGamesCommand}"/>
+                        </StackPanel>
+
+                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontSize="12" Margin="0,0,0,12"
+                                   Text="Set the installation folder for each game. The manager looks for a mods folder inside this directory."/>
+
+                        <ItemsControl ItemsSource="{Binding GameDirs}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="0,0,0,12">
+                                        <TextBlock Text="{Binding Game.Name}" FontWeight="Medium"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   Margin="0,0,0,4"/>
+                                        <DockPanel LastChildFill="True">
+                                            <Button Content="Browse" DockPanel.Dock="Right"
+                                                    Margin="8,0,0,0" Padding="10,5"
+                                                    Style="{StaticResource SecondaryButton}" FontSize="12"
+                                                    Command="{Binding DataContext.BrowseDirectoryCommand,
+                                                        RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding Game}"/>
+                                            <TextBox IsReadOnly="True" FontSize="12"
+                                                     Text="{Binding Directory, Mode=OneWay}"
+                                                     Foreground="{StaticResource TextSecondaryBrush}"
+                                                     Background="{StaticResource BgDarkBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}"/>
+                                        </DockPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Action Bar -->
+        <Border Grid.Row="2" Background="{StaticResource BgDarkBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Button Content="+ Add Mod" Style="{StaticResource AccentButton}"
+                            Command="{Binding ShowAddModModalCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Open Mods Folder" Style="{StaticResource SecondaryButton}"
+                            Command="{Binding OpenModsFolderCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Refresh" Style="{StaticResource SecondaryButton}"
+                            Command="{Binding RefreshModsCommand}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Column="1" Text="{Binding StatusMessage}"
+                           Foreground="{StaticResource TextMutedBrush}" FontSize="12"
+                           VerticalAlignment="Center" Margin="12,0,0,0"/>
+            </Grid>
+        </Border>
+
+        <!-- Bottom Bar: Game Selector + Save & Play -->
+        <Border Grid.Row="3" Background="{StaticResource BgDarkBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                Padding="12,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ComboBox ItemsSource="{Binding FoundGames}"
+                              SelectedItem="{Binding SelectedGame}"
+                              MinWidth="280" MaxWidth="360"
+                              VerticalAlignment="Center"
+                              Style="{StaticResource DarkComboBox}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="{Binding IconBitmap}" Width="20" Height="20"
+                                           Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource SecondaryButton}"
+                            Padding="16,10" FontSize="13" FontWeight="Medium"
+                            Margin="0,0,8,0">
+                        Save
+                    </Button>
+                    <Button Style="{StaticResource AccentButton}"
+                            Command="{Binding SaveAndPlayCommand}"
+                            IsEnabled="{Binding IsLaunching, Converter={StaticResource InverseBool}}"
+                            Padding="24,10" FontSize="14" FontWeight="SemiBold">
+                        <TextBlock>
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="Save and Play"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                                            <Setter Property="Text" Value="Applying Mods..."/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Add Mod Modal -->
+        <Border Grid.RowSpan="4" Background="#80000000"
+                Visibility="{Binding ShowAddModModal, Converter={StaticResource BoolToVis}}"
+                MouseLeftButtonDown="ModalBackdrop_MouseLeftButtonDown">
+            <Border Background="{StaticResource BgLightBrush}" BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="24"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Width="400" MaxWidth="400">
+                <StackPanel>
+                    <TextBlock Text="+ Add Mod" FontSize="18" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                    <RadioButton Content="Add mod from zip" Margin="0,0,0,8"
+                                 Foreground="{StaticResource TextPrimaryBrush}" FontSize="13"
+                                 GroupName="AddMod" IsChecked="True"
+                                 Checked="AddModZip_Checked"/>
+                    <RadioButton Content="Add mod from folder" Margin="0,0,0,8"
+                                 Foreground="{StaticResource TextPrimaryBrush}" FontSize="13"
+                                 GroupName="AddMod"
+                                 Checked="AddModFolder_Checked"/>
+                    <RadioButton Content="Create new mod" Margin="0,0,0,8"
+                                 Foreground="{StaticResource TextPrimaryBrush}" FontSize="13"
+                                 GroupName="AddMod"
+                                 Checked="AddModNew_Checked"/>
+
+                    <TextBox x:Name="NewModNameBox" Margin="0,4,0,16"
+                             Visibility="Collapsed"
+                             Background="{StaticResource BgDarkBrush}"
+                             Foreground="{StaticResource TextPrimaryBrush}"
+                             BorderBrush="{StaticResource BorderBrush}"
+                             Padding="8,6" FontSize="13"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancel" Style="{StaticResource SecondaryButton}"
+                                Padding="16,8" Margin="0,0,8,0"
+                                Click="AddModCancel_Click"/>
+                        <Button Content="Confirm" Style="{StaticResource AccentButton}"
+                                Padding="16,8"
+                                Command="{Binding ConfirmAddModCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</Window>
