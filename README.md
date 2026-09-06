@@ -14,11 +14,11 @@ Works with all of them:
 
 ## Getting mods
 
-Grab mods from wherever people share them (Nexus Mods, Discord, etc.). Each mod is usually a folder with some files in it with a `mod.ini`. Out of the box, most mods won't work with the mod manager. To make the mods work, you have to copy the folder structure in the root folder., i.e. 'GameData/Model/Costume/Uniform/'.[H](http://H.cat)
+Grab mods from wherever people share them (Nexus Mods, Discord, etc.). Each mod is usually a folder with some files in it with a `mod.ini`. Out of the box, most mods won't work with the mod manager. To make the mods work, you have to copy the folder structure in the root folder., i.e. 'GameData/Model/Costume/Uniform/'.
 
 ## Installing mods
 
-1. Pick your game from the dropdown at the top.
+1. Pick your game from the dropdown at the bottom.
 2. Hit **Open Mods Folder**.
 3. Drop each mod in its own subfolder inside that `mods` folder. So it looks like `mods/My Mod/...`.
 4. Tick the mods you want on. Star your favorites if you want, drag to reorder.
@@ -39,6 +39,6 @@ You need the [.NET 8 SDK](https://dotnet.microsoft.com/download) on Windows.
 ```bash
 git clone https://github.com/Kryolen/kagura-mod-manager.git
 cd kagura-mod-manager
-dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true
+dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --self-contained false
 ```
 
