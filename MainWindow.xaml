@@ -73,7 +73,7 @@
                       ContextMenuOpening="ModDataGrid_ContextMenuOpening">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="" Binding="{Binding Id}" Width="*" Visibility="Collapsed"/>
-                    <DataGridTemplateColumn Header="" Width="40">
+                    <DataGridTemplateColumn Header="" Width="56">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <CheckBox IsChecked="{Binding IsEnabled}" HorizontalAlignment="Center"
@@ -92,7 +92,19 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Title}" Width="*"/>
+                    <DataGridTemplateColumn Header="Name" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,2" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource TextPrimaryBrush}"
+                                               FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Description}" Foreground="{StaticResource TextSecondaryBrush}"
+                                               FontSize="11" TextTrimming="CharacterEllipsis"
+                                               MaxHeight="16" TextWrapping="NoWrap"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="80"/>
                     <DataGridTextColumn Header="Author" Binding="{Binding Author}" Width="140"/>
                 </DataGrid.Columns>

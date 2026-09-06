@@ -1,6 +1,6 @@
-# kagura-mod-manager
+# Kagura Mod Manager
 
-A Senran Kagura mod manager for the Steam games. Windows desktop app, .NET 8.
+A Senran Kagura mod manager for the Steam games. 
 
 Works with all of them:
 
@@ -14,7 +14,7 @@ Works with all of them:
 
 ## Getting mods
 
-Grab mods from wherever people share them (Nexus Mods, Discord, etc.). Each mod is usually a folder with some files in it, sometimes a `mod.ini` or preview image.
+Grab mods from wherever people share them (Nexus Mods, Discord, etc.). Each mod is usually a folder with some files in it with a `mod.ini`. Out of the box, most mods won't work with the mod manager. To make the mods work, you have to copy the folder structure in the root folder., i.e. 'GameData/Model/Costume/Uniform/'.[H](http://H.cat)
 
 ## Installing mods
 
@@ -26,6 +26,12 @@ Grab mods from wherever people share them (Nexus Mods, Discord, etc.). Each mod 
 
 That's it. Next time you swap mods around it cleans up after itself, so you don't have to mess with the game files by hand.
 
+## Running the release
+
+If you just want to use it, grab the `.exe` from the [releases page](https://github.com/Kryolen/kagura-mod-manager/releases) and run it.
+
+You'll need the [.NET 8 desktop runtime](https://dotnet.microsoft.com/download/dotnet/8.0) installed. Grab the "Desktop Runtime" for Windows x64 and install it, then the `.exe` just works.
+
 ## Building it
 
 You need the [.NET 8 SDK](https://dotnet.microsoft.com/download) on Windows.
@@ -33,8 +39,6 @@ You need the [.NET 8 SDK](https://dotnet.microsoft.com/download) on Windows.
 ```bash
 git clone https://github.com/Kryolen/kagura-mod-manager.git
 cd kagura-mod-manager
-dotnet build -c Release
-dotnet run -c Release
+dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true
 ```
 
-Or just open `KaguraModManager.csproj` in Visual Studio / Rider / whatever and hit run.
